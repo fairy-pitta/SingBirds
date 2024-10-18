@@ -42,7 +42,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'singbirds',
-    'rest_framework'
+    'rest_framework',
+    'import_export',
 ]
 
 MIDDLEWARE = [

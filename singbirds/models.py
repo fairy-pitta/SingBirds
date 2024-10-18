@@ -50,7 +50,7 @@ class BirdDetail(models.Model):
 class AcousticParameters(models.Model):
     parameter_id = models.AutoField(primary_key=True)
     bird_id = models.ForeignKey('Bird', on_delete=models.CASCADE)
-    birddetail_id = models.ForeignKey('BirdDetail', on_delete=models.CASCADE)
+    birddetail_id = models.ForeignKey('BirdDetail', on_delete=models.CASCADE, unique=True)
     
     # 音響特徴量
     mfcc_features = JSONField()  # MFCC特徴量 (リストとして保存)
