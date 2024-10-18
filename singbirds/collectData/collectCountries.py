@@ -6,6 +6,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+
 def fetch_and_save_countries():
     url = "https://api.ebird.org/v2/ref/region/list"
     api_token = os.getenv("ebirdToken")

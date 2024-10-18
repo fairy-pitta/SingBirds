@@ -5,8 +5,8 @@ import os
 
 load_dotenv()
 
-def fetch_and_save_sg_hotspots():
-    url = "https://api.ebird.org/v2/ref/hotspot/SG"
+def fetch_and_save_hotspots_by_country(country_code):
+    url = f"https://api.ebird.org/v2/ref/hotspot/{country_code}"
 
     # APIトークンを.envから取得
     api_token = os.getenv("ebirdToken")
@@ -14,6 +14,8 @@ def fetch_and_save_sg_hotspots():
     headers = {
         "X-eBirdApiToken": api_token
     }
+
+    print(api_token)
 
     params = {
         "fmt": "json",
@@ -24,9 +26,10 @@ def fetch_and_save_sg_hotspots():
     if response.status_code == 200:
         hotspots = response.json()
 
-        sg_country, created = Country.objects.get_or_create(
-            countryCode="SG",
-            defaults={"country_name": "Singapore"}
+        # Country テーブルから国情報を取得または作成
+        country, created = Country.objects.get_or_create(
+            countryCode=country_code,
+            defaults={"country_name": country_code}  # 必要であれば別途カスタムで国名を設定可能
         )
 
         for hotspot_data in hotspots:
@@ -42,7 +45,7 @@ def fetch_and_save_sg_hotspots():
                 Hotspot.objects.create(
                     locId=loc_id,
                     locName=loc_name,
-                    countrycode=sg_country,
+                    countrycode=country,
                     subnationalCode=subnational_code,
                     lat=lat,
                     lng=lng,
@@ -53,4 +56,4 @@ def fetch_and_save_sg_hotspots():
             else:
                 print(f"Hotspot {loc_name} already exists.")
     else:
-        print(f"Failed to fetch data: {response.status_code}")
+        print(f"Failed to fetch data for {country_code}: {response.status_code}")

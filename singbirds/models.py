@@ -1,4 +1,5 @@
 from django.db import models
+from django.db.models import JSONField 
 
 
 class Country(models.Model):
@@ -44,3 +45,24 @@ class BirdDetail(models.Model):
 
     def __str__(self):
         return f"Recording for {self.bird_id.comName} {self.birddetail_id}"
+
+
+class AcousticParameters(models.Model):
+    parameter_id = models.AutoField(primary_key=True)
+    bird_id = models.ForeignKey('Bird', on_delete=models.CASCADE)
+    birddetail_id = models.ForeignKey('BirdDetail', on_delete=models.CASCADE)
+    
+    # 音響特徴量
+    mfcc_features = JSONField()  # MFCC特徴量 (リストとして保存)
+    chroma_features = JSONField()  # Chroma特徴量 (リストとして保存)
+    spectral_bandwidth = models.FloatField()  # スペクトル帯域幅
+    spectral_contrast = JSONField()  # スペクトルコントラスト (リストとして保存)
+    spectral_flatness = models.FloatField()  # スペクトルフラットネス
+    rms_energy = models.FloatField()  # RMSエネルギー
+    zero_crossing_rate = models.FloatField()  # ゼロ交差率
+    spectral_centroid = models.FloatField()  # スペクトル中心
+    spectral_rolloff = models.FloatField()  # スペクトルロールオフ
+    created_at = models.DateTimeField(auto_now_add=True)  # レコード作成日時
+
+    def __str__(self):
+        return f"Acoustic Parameters for Bird ID: {self.bird_id}"

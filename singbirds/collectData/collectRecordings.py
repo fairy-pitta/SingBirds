@@ -1,12 +1,12 @@
-import requests
+from django.contrib import admin
 from ..models import Bird, BirdDetail
+import requests
 
-def fetch_xeno_canto_recordings():
+@admin.action(description="選択した鳥に対してXeno-Cantoの録音を取得")
+def fetch_xeno_canto_recordings(modeladmin, request, queryset):
     base_url = "https://www.xeno-canto.org/api/2/recordings"
     
-    birds = Bird.objects.all()
-    
-    for bird in birds:
+    for bird in queryset:
         query = bird.sciName
         
         params = {
@@ -28,22 +28,18 @@ def fetch_xeno_canto_recordings():
                 
                 if recording['q'] == 'A':
                     recording_url = recording['file']
-                    spectrogram_url = recording['sono'].get('full', '')
                     
                     # BirdDetail にデータを保存
                     bird_detail, created = BirdDetail.objects.get_or_create(
                         bird_id=bird,
                         recording_url=recording_url,
-                        defaults={
-                            'spectrogram': spectrogram_url,
-                        }
                     )
                     
                     if created:
-                        print(f"Recording added for {bird.comName}: {recording_url}")
+                        modeladmin.message_user(request, f"Recording added for {bird.comName}: {recording_url}")
                     else:
-                        print(f"Recording already exists for {bird.comName}")
+                        modeladmin.message_user(request, f"Recording already exists for {bird.comName}")
                     
                     count += 1  # カウンタを増加
         else:
-            print(f"Failed to fetch data for {bird.comName}: {response.status_code}")
+            modeladmin.message_user(request, f"Failed to fetch data for {bird.comName}: {response.status_code}", level='error')
