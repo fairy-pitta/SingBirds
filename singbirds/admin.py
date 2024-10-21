@@ -13,6 +13,15 @@ from .collectData.collectParameters import sync_extract_acoustic_features
 from .collectData.getNMDS import perform_nmds_action
 from .collectData.getUMAP import perform_umap_action
 
+@admin.action(description='Delete BirdDetails without recording URL')
+def delete_bird_details_without_recording_url(modeladmin, request, queryset):
+    # recording_url が存在しないレコードをフィルタリング
+    to_delete = queryset.filter(recording_url__isnull=True) | queryset.filter(recording_url__exact='')
+    count, _ = to_delete.delete()
+    
+    # メッセージを表示
+    modeladmin.message_user(request, f'Successfully deleted {count} BirdDetails without recording URL.')
+
 
 @admin.action(description='Fetch and save countries from eBird API')
 def fetch_countries_action(modeladmin, request, queryset):
@@ -38,6 +47,7 @@ def fetch_birds_for_selected_countries(modeladmin, request, queryset):
         modeladmin.message_user(request, f"Fetched bird data for {country.country_name} ({country.countryCode})")
 
 class AcousticParametersResource(resources.ModelResource):
+    list_filter = ("bird_id",) 
     class Meta:
         model = AcousticParameters
         fields = ('bird_id', 'birddetail_id', 'mfcc_features', 'chroma_features',
@@ -52,6 +62,8 @@ class BirdDetailResource(resources.ModelResource):
 
 class BirdAdmin(admin.ModelAdmin):
     actions = [fetch_xeno_canto_recordings]
+    search_fields = ('comName',)
+    list_filter = ("hotspots",)
 
 class HotspotAdmin(admin.ModelAdmin):
     actions = [fetch_birds_for_selected_hotspots]
@@ -61,8 +73,10 @@ class CountryAdmin(admin.ModelAdmin):
     actions = [fetch_countries_action, fetch_hotspots_for_selected_countries, fetch_birds_for_selected_countries] 
 
 class BirdDetailAdmin(ImportExportModelAdmin):
+    list_filter = ("bird_id", )
+    search_fields = ('bird_id__comName',)
     list_display = ['bird_id', 'birddetail_id', 'recording_url', 'spectrogram_image']
-    actions = [generate_spectrograms_action, sync_extract_acoustic_features]
+    actions = [generate_spectrograms_action, sync_extract_acoustic_features,delete_bird_details_without_recording_url]
     resource_class = BirdDetailResource 
 
     def spectrogram_image(self, obj):
@@ -75,6 +89,7 @@ class BirdDetailAdmin(ImportExportModelAdmin):
 
 
 class AcousticParametersAdmin(admin.ModelAdmin):
+    list_filter = ("bird_id",) 
     actions = [perform_nmds_action, perform_umap_action]
 
 
