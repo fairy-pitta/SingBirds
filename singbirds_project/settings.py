@@ -13,6 +13,7 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 from pathlib import Path
 import os
 from dotenv import load_dotenv
+import datetime
 
 load_dotenv()
 
@@ -149,3 +150,62 @@ try:
     from .local_settings import *
 except ImportError:
     pass
+
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "formatters": {
+        "simple": {
+            "format": "[%(asctime)s] (%(levelname)s) / %(message)s",
+        }
+    },
+    "handlers": {
+        "accesslog": {
+            "level": "INFO",
+            "class": "logging.handlers.TimedRotatingFileHandler",
+            "filename": BASE_DIR / "log/access_{:%Y%m}.log".format(datetime.now()),
+            'when': 'D',
+            'interval': 31,
+            'backupCount': 12,
+            "formatter": "simple",
+            "encoding": "utf-8",
+        },
+        "errorlog": {
+            "level": "ERROR",
+            "class": "logging.handlers.TimedRotatingFileHandler",
+            "filename": BASE_DIR / "log/error_{:%Y%m}.log".format(datetime.now()),
+            'when': 'D',
+            'interval': 31,
+            'backupCount': 12,
+            "formatter": "simple",
+            "encoding": "utf-8",
+        },
+        "auditlog": {
+            "level": "INFO",
+            "class": "logging.handlers.TimedRotatingFileHandler",
+            "filename": BASE_DIR / "log/audit_{:%Y%m}.log".format(datetime.now()),
+            'when': 'D',
+            'interval': 31,
+            'backupCount': 12,
+            "formatter": "simple",
+            "encoding": "utf-8",
+        },
+    },
+    "loggers": {
+        "app": {
+            "level": "INFO",
+            "propagate": False,
+            "handlers": ["auditlog"],
+        },
+        "django": {
+            "handlers": ["errorlog"],
+            "level": "INFO",
+            "propagate": False,
+        },
+        "django.server": {
+            "handlers": ["accesslog"],
+            "level": "INFO",
+            "propagate": False,
+        },
+    },
+}

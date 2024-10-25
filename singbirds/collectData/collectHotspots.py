@@ -2,7 +2,9 @@ import requests
 from ..models import Hotspot, Country
 from dotenv import load_dotenv
 import os
+import logging 
 
+logger = logging.getLogger(__name__)
 load_dotenv()
 
 def fetch_and_save_hotspots_by_country(country_code):
@@ -15,9 +17,9 @@ def fetch_and_save_hotspots_by_country(country_code):
         "X-eBirdApiToken": api_token
     }
 
-    print(f"Using API token: {api_token}")
-    print(f"{country_code}")
-    print(url)
+    logger.debug(f"Using API token: {api_token}")
+    logger.debug(f"Country code: {country_code}")
+    logger.debug(f"Request URL: {url}")
 
     params = {
         "fmt": "json",
@@ -56,20 +58,20 @@ def fetch_and_save_hotspots_by_country(country_code):
                         latestObsDate=latest_obs_date,
                         numSpAllTime=num_sp_all_time
                     )
-                    print(f"Added: {loc_name}")
+                    logger.info(f"Added hotspot: {loc_name}")
                 else:
-                    print(f"Hotspot {loc_name} already exists.")
+                    logger.info(f"Hotspot {loc_name} already exists.")
         else:
             # エラーメッセージを出力（APIが返した詳細なエラー内容を表示）
-            print(f"Failed to fetch data for {country_code}: {response.status_code}")
+            logger.error(f"Failed to fetch data for {country_code}: {response.status_code}")
             try:
                 # JSONエラーの詳細を取得
                 error_details = response.json()
-                print("Error details:", error_details)
+                logger.error("Error details:", error_details)
             except ValueError:
                 # JSONでない場合はテキストとして表示
-                print("Error details:", response.text)
+                logger.error("Error details:", response.text)
 
     except requests.exceptions.RequestException as e:
         # ネットワークエラーやリクエストエラーの詳細を表示
-        print(f"An error occurred while fetching data for {country_code}: {str(e)}")
+        logger.error(f"An error occurred while fetching data for {country_code}: {str(e)}")
