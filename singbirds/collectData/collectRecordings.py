@@ -4,7 +4,7 @@ import requests
 import time
 import logging
 from django.db import connection
-import psutil  # メモリ使用量を確認するためのパッケージ
+import psutil
 
 # ロガーの設定
 logger = logging.getLogger("app")
