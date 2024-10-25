@@ -57,7 +57,7 @@ class AcousticParametersResource(resources.ModelResource):
 class BirdDetailResource(resources.ModelResource):
     class Meta:
         model = BirdDetail
-        fields = ('birddetail_id', 'recording_url')
+        fields = ('recording_url', 'bird_id', 'spectrogram')
 
 
 class BirdAdmin(admin.ModelAdmin):
