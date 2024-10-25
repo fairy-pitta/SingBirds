@@ -18,18 +18,18 @@ def fetch_xeno_canto_recordings(modeladmin, request, queryset):
         }
 
         # # ログ: APIリクエストの詳細を表示
-        # logger.info(f"Requesting recordings for bird: {bird.comName} (Scientific name: {query})")
+        logger.info(f"Requesting recordings for bird: {bird.comName} (Scientific name: {query})")
         # logger.info(f"API URL: {base_url} with params: {params}")
 
         response = requests.get(base_url, params=params)
 
-        # レスポンスのURLとステータスコードをログに記録
-        logger.info(f"API Response URL: {response.url}")
-        logger.info(f"API Response Status Code: {response.status_code}")
+        # # レスポンスのURLとステータスコードをログに記録
+        # logger.info(f"API Response URL: {response.url}")
+        # logger.info(f"API Response Status Code: {response.status_code}")
         
         if response.status_code == 200:
             data = response.json()
-            logger.info(f"API Response Data for {bird.comName}: {data}")
+            # logger.info(f"API Response Data for {bird.comName}: {data}")
 
             count = 0  # 保存件数のカウンタ
 
