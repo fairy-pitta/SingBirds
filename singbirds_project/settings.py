@@ -163,7 +163,7 @@ LOGGING = {
         "accesslog": {
             "level": "INFO",
             "class": "logging.handlers.TimedRotatingFileHandler",
-            "filename": BASE_DIR / "log/access_{:%Y%m}.log".format(datetime.now()),
+            "filename": os.path.join(BASE_DIR, f"log/access_{datetime.now().strftime('%Y%m')}.log"),
             'when': 'D',
             'interval': 31,
             'backupCount': 12,
@@ -173,7 +173,7 @@ LOGGING = {
         "errorlog": {
             "level": "ERROR",
             "class": "logging.handlers.TimedRotatingFileHandler",
-            "filename": BASE_DIR / "log/error_{:%Y%m}.log".format(datetime.now()),
+            "filename": os.path.join(BASE_DIR, f"log/error_{datetime.now().strftime('%Y%m')}.log"),
             'when': 'D',
             'interval': 31,
             'backupCount': 12,
@@ -183,7 +183,7 @@ LOGGING = {
         "auditlog": {
             "level": "INFO",
             "class": "logging.handlers.TimedRotatingFileHandler",
-            "filename": BASE_DIR / "log/audit_{:%Y%m}.log".format(datetime.now()),
+            "filename": os.path.join(BASE_DIR, f"log/audit_{datetime.now().strftime('%Y%m')}.log"),
             'when': 'D',
             'interval': 31,
             'backupCount': 12,
