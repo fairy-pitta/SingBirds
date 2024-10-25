@@ -52,23 +52,30 @@ def fetch_xeno_canto_recordings(modeladmin, request, queryset):
                     logger.warning(f"Recording URL is missing for bird: {bird.comName}")
                     continue
 
-                bird_detail, created = BirdDetail.objects.get_or_create(
-                    bird_id=bird,
-                    recording_url=recording_url,
-                )
+                try:
+                    bird_detail, created = BirdDetail.objects.get_or_create(
+                        bird_id=bird,
+                        recording_url=recording_url,
+                    )
 
-                message = f"Recording {'added' if created else 'already exists'} for {bird.comName}: {recording_url}"
-                logger.info(message)
-                modeladmin.message_user(request, message)
+                    message = f"Recording {'added' if created else 'already exists'} for {bird.comName}: {recording_url}"
+                    logger.info(message)
+                    modeladmin.message_user(request, message)
 
-                count += 1
-                mem_info = process.memory_info().rss / (1024 * 1024)
-                logger.info(f"Memory usage after recording for {bird.comName}: {mem_info:.2f} MB")
-                time.sleep(1)
+                    count += 1
+                    mem_info = process.memory_info().rss / (1024 * 1024)
+                    logger.info(f"Memory usage after recording for {bird.comName}: {mem_info:.2f} MB")
+                    time.sleep(1)
 
+                except Exception as db_exception:
+                    db_error_message = f"Database error for {bird.comName}: {db_exception}"
+                    logger.error(db_error_message)
+                    modeladmin.message_user(request, db_error_message, level='error')
+                    break  # エラーが発生した場合、次の鳥の処理に移行
+
+        # 一時的データを削除し、ガベージコレクションを強制実行
         del data, response
-        gc.collect()  # 明示的にガベージコレクションを実行
-
+        gc.collect()  
         connection.close()  # DB接続を明示的に閉じる
         time.sleep(5)
         logger.info(f"Finished processing bird: {bird.comName}\n")
