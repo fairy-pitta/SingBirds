@@ -144,6 +144,7 @@ DATA_UPLOAD_MAX_NUMBER_FIELDS = 1000000
 CORS_ALLOWED_ORIGINS = [
     'http://localhost:3000',
     'https://singbirds.net',
+    "https://www.singbirds.net",
 ]
 
 try:
