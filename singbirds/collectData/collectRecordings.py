@@ -5,7 +5,7 @@ import time
 import logging
 
 # ロガーの設定
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("app")
 
 @admin.action(description="選択した鳥に対してXeno-Cantoの録音を取得")
 def fetch_xeno_canto_recordings(modeladmin, request, queryset):
