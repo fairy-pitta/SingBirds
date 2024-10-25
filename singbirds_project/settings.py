@@ -27,7 +27,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.getenv("SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.getenv("DEBUG")
+DEBUG = os.getenv("DEBUG", "False").lower() in ("true", "1")
 
 
 # Application definition
@@ -129,6 +129,9 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+# STATICFILES_DIRS = (
+#   os.path.join(BASE_DIR, 'staticfiles/'),
+# )
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
@@ -137,9 +140,10 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 DATA_UPLOAD_MAX_NUMBER_FIELDS = 1000000
 
-# CORS_ALLOWED_ORIGINS = [
-#     'http://localhost:3000',
-# ]
+CORS_ALLOWED_ORIGINS = [
+    'http://localhost:3000',
+    'https://singbirds.net',
+]
 
 try:
     from .local_settings import *
