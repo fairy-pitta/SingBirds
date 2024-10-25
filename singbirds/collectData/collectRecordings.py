@@ -67,9 +67,9 @@ def fetch_xeno_canto_recordings(modeladmin, request, queryset):
             error_message = f"Failed to fetch data for {bird.comName}: {response.status_code}"
             logger.error(error_message)
             modeladmin.message_user(request, error_message, level='error')
-
+        
         # 5秒間の休憩
-        time.sleep(5)
+        time.sleep(10)
 
         # 処理が終了した鳥の情報を表示
         logger.info(f"Finished processing bird: {bird.comName}\n")
