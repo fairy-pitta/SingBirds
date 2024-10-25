@@ -17,59 +17,51 @@ def fetch_xeno_canto_recordings(modeladmin, request, queryset):
             'query': f"{query} len:0-30 q:A"
         }
 
-        # # ログ: APIリクエストの詳細を表示
         logger.info(f"Requesting recordings for bird: {bird.comName} (Scientific name: {query})")
-        # logger.info(f"API URL: {base_url} with params: {params}")
 
-        response = requests.get(base_url, params=params)
-
-        # # レスポンスのURLとステータスコードをログに記録
-        # logger.info(f"API Response URL: {response.url}")
-        # logger.info(f"API Response Status Code: {response.status_code}")
-        
-        if response.status_code == 200:
-            data = response.json()
-            # logger.info(f"API Response Data for {bird.comName}: {data}")
-
-            count = 0  # 保存件数のカウンタ
-
-            for recording in data.get('recordings', []):
-                if count >= 10:  # 10件保存したら終了
-                    logger.info(f"10 recordings already saved for bird: {bird.comName}")
-                    break
-
-                if recording.get('q') == 'A':
-                    recording_url = recording.get('file')
-
-                    if not recording_url:
-                        logger.warning(f"Recording URL is missing for bird: {bird.comName}")
-                        continue
-
-                    # BirdDetail にデータを保存
-                    bird_detail, created = BirdDetail.objects.get_or_create(
-                        bird_id=bird,
-                        recording_url=recording_url,
-                    )
-
-                    if created:
-                        message = f"Recording added for {bird.comName}: {recording_url}"
-                        logger.info(message)
-                        modeladmin.message_user(request, message)
-                    else:
-                        message = f"Recording already exists for {bird.comName}"
-                        logger.info(message)
-                        modeladmin.message_user(request, message)
-
-                    count += 1
-                else:
-                    logger.info(f"Recording skipped for {bird.comName} due to quality: {recording.get('q')}")
-        else:
-            error_message = f"Failed to fetch data for {bird.comName}: {response.status_code}"
+        try:
+            response = requests.get(base_url, params=params, timeout=10)
+            response.raise_for_status()  # リクエスト失敗時に例外を発生させる
+        except requests.RequestException as e:
+            error_message = f"Failed to fetch data for {bird.comName}: {e}"
             logger.error(error_message)
             modeladmin.message_user(request, error_message, level='error')
-        
-        # 5秒間の休憩
-        time.sleep(10)
+            continue
 
-        # 処理が終了した鳥の情報を表示
+        data = response.json()
+        count = 0  # 保存件数のカウンタ
+
+        # 録音データを個別に処理してメモリ使用量を最小限に抑える
+        for recording in data.get('recordings', []):
+            if count >= 10:
+                logger.info(f"10 recordings saved for bird: {bird.comName}")
+                break
+
+            if recording.get('q') == 'A':
+                recording_url = recording.get('file')
+
+                if not recording_url:
+                    logger.warning(f"Recording URL is missing for bird: {bird.comName}")
+                    continue
+
+                bird_detail, created = BirdDetail.objects.get_or_create(
+                    bird_id=bird,
+                    recording_url=recording_url,
+                )
+
+                message = f"Recording {'added' if created else 'already exists'} for {bird.comName}: {recording_url}"
+                logger.info(message)
+                modeladmin.message_user(request, message)
+
+                count += 1
+            else:
+                logger.info(f"Skipped recording for {bird.comName} due to quality: {recording.get('q')}")
+
+        # メモリ負荷を軽減するためにデータ削除
+        del data, response
+
+        # 各鳥ごとに休憩を挟む
+        time.sleep(5)
+
+        # 鳥の処理が終了したことをログに記録
         logger.info(f"Finished processing bird: {bird.comName}\n")
