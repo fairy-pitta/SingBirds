@@ -4,6 +4,7 @@ import requests
 import time
 import logging
 from django.db import connection
+import psutil  # メモリ使用量を確認するためのパッケージ
 
 # ロガーの設定
 logger = logging.getLogger("app")
@@ -22,16 +23,25 @@ def fetch_xeno_canto_recordings(modeladmin, request, queryset):
 
         try:
             response = requests.get(base_url, params=params, timeout=10)
-            response.raise_for_status()  # リクエスト失敗時に例外を発生させる
+            response.raise_for_status()
+            
+            # レスポンスサイズをログ出力
+            response_size = len(response.content)
+            logger.info(f"Response size for {bird.comName}: {response_size} bytes")
+
+            # メモリの使用状況を確認
+            process = psutil.Process()
+            mem_info = process.memory_info().rss / (1024 * 1024)
+            logger.info(f"Memory usage after request for {bird.comName}: {mem_info:.2f} MB")
+
         except requests.RequestException as e:
             error_message = f"Failed to fetch data for {bird.comName}: {e}"
             logger.error(error_message)
             modeladmin.message_user(request, error_message, level='error')
             continue
 
-        # レスポンスデータを一つずつ処理し、メモリ使用量を減らす
         data = response.json()
-        count = 0  # 保存件数のカウンタ
+        count = 0
 
         for recording in data.get('recordings', []):
             if count >= 10:
@@ -45,7 +55,6 @@ def fetch_xeno_canto_recordings(modeladmin, request, queryset):
                     logger.warning(f"Recording URL is missing for bird: {bird.comName}")
                     continue
 
-                # BirdDetail にデータを保存
                 bird_detail, created = BirdDetail.objects.get_or_create(
                     bird_id=bird,
                     recording_url=recording_url,
@@ -57,20 +66,14 @@ def fetch_xeno_canto_recordings(modeladmin, request, queryset):
 
                 count += 1
 
-                # 各録音の処理ごとにスリープを追加
+                # 録音ごとにメモリ確認とスリープを追加
+                mem_info = process.memory_info().rss / (1024 * 1024)
+                logger.info(f"Memory usage after recording for {bird.comName}: {mem_info:.2f} MB")
                 time.sleep(1)
-
-            else:
-                logger.info(f"Skipped recording for {bird.comName} due to quality: {recording.get('q')}")
-
-        # メモリを確保するために、ループごとにDB接続をクリア
-        connection.close()
 
         # データ削除してメモリ解放を促進
         del data, response
+        connection.close()
 
-        # 各鳥ごとに休憩を挟む
-        time.sleep(10)
-
-        # 鳥の処理が終了したことをログに記録
+        time.sleep(5)
         logger.info(f"Finished processing bird: {bird.comName}\n")
