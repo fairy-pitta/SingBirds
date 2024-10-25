@@ -17,9 +17,9 @@ def fetch_xeno_canto_recordings(modeladmin, request, queryset):
             'query': f"{query} len:0-30 q:A"
         }
 
-        # ログ: APIリクエストの詳細を表示
-        logger.info(f"Requesting recordings for bird: {bird.comName} (Scientific name: {query})")
-        logger.info(f"API URL: {base_url} with params: {params}")
+        # # ログ: APIリクエストの詳細を表示
+        # logger.info(f"Requesting recordings for bird: {bird.comName} (Scientific name: {query})")
+        # logger.info(f"API URL: {base_url} with params: {params}")
 
         response = requests.get(base_url, params=params)
 
