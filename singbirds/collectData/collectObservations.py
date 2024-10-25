@@ -9,7 +9,7 @@ import logging
 load_dotenv()
 
 # ロガーの設定
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("app")
 
 @admin.action(description="選択したホットスポットの情報を取得し鳥データを更新")
 def fetch_birds_for_selected_hotspots(modeladmin, request, queryset):
